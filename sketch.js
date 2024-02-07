@@ -25,14 +25,18 @@ class Paddle {
     }
 
     draw() {
-        fill(255);
-        rect(this.x, this.y, this.w, this.h);
+        if (this.isPlayer) {
+            image(playerImage, this.x, this.y, this.w, this.h);
+        } else {
+            image(computerImage, this.x, this.y, this.w, this.h);
+        }
     }
 }
 
 class Ball {
     constructor() {
-        this.radius = 25;
+        this.radius = 12;
+        this.angle = 0;
         this.reset();
     }
 
@@ -47,6 +51,9 @@ class Ball {
     update() {
         this.x += this.speedX;
         this.y += this.speedY;
+
+        let speedMagnitude = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY);
+        this.angle += speedMagnitude / 50;
 
         if (this.x < this.radius || this.x > width - this.radius) {
             this.reset();
@@ -64,8 +71,11 @@ class Ball {
     }
 
     draw() {
-        fill(255);
-        ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+        push();
+        translate(this.x, this.y);
+        rotate(this.angle);
+        image(ballImage, -this.radius, -this.radius, this.radius * 2, this.radius * 2); // Draw ball
+        pop();
     }
 }
 
@@ -89,6 +99,18 @@ function collideRectangleCircle(cx, cy, radius, x, y, w, h) {
     return true;
 }
 
+let ballImage;
+let playerImage;
+let computerImage;
+let backgroundImage;
+
+function preload() {
+    ballImage = loadImage('images/ball.png');
+    playerImage = loadImage('images/paddle_1.png');
+    computerImage = loadImage('images/paddle_2.png');
+    backgroundImage = loadImage('images/background_2.png');
+}
+
 let ball, player, computer;
 
 function setup() {
@@ -98,12 +120,29 @@ function setup() {
     computer = new Paddle(width - 40, false);
 }
 
-function draw() {
-    background(0);
+function calculateAspectRatio() {
+    let canvasAspectRatio = width / height;
+    let fundoAspectRatio = backgroundImage.width / backgroundImage.height;
+    return canvasAspectRatio > fundoAspectRatio ? width / backgroundImage.width : height / backgroundImage.height;
+}
+
+function drawBackground() {
+    let zoom = calculateAspectRatio();
+    let scaledWidth = backgroundImage.width * zoom;
+    let scaledHeight = backgroundImage.height * zoom;
+    image(backgroundImage, (width - scaledWidth) / 2, (height - scaledHeight) / 2, scaledWidth, scaledHeight);
+}
+
+function updateAndDrawEntities() {
     ball.update();
     ball.draw();
     player.update();
     player.draw();
     computer.update();
     computer.draw();
+}
+
+function draw() {
+    drawBackground();
+    updateAndDrawEntities();
 }
