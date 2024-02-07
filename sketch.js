@@ -56,6 +56,7 @@ class Ball {
         this.angle += speedMagnitude / 50;
 
         if (this.x < this.radius || this.x > width - this.radius) {
+            golSound.play();
             this.reset();
         }
         if (this.y < this.radius || this.y > height - this.radius) {
@@ -64,9 +65,16 @@ class Ball {
 
         if (collideRectangleCircle(this.x, this.y, this.radius, player.x, player.y, player.w, player.h) ||
             collideRectangleCircle(this.x, this.y, this.radius, computer.x, computer.y, computer.w, computer.h)) {
+            bounceSound.play();
             this.speedX *= -1;
             this.speedX *= 1.1;
             this.speedY *= 1.1;
+        }
+
+        if (this.x < this.radius) {
+            golSound.play();
+        } else if (this.x > width - this.radius) {
+            golSound.play();
         }
     }
 
@@ -104,20 +112,52 @@ let playerImage;
 let computerImage;
 let backgroundImage;
 
+let bounceSound;
+let golSound;
+
 function preload() {
     ballImage = loadImage('images/ball.png');
     playerImage = loadImage('images/paddle_1.png');
     computerImage = loadImage('images/paddle_2.png');
     backgroundImage = loadImage('images/background_2.png');
+    bounceSound = loadSound('sounds/freesound_bounce.wav');
+    golSound = loadSound('sounds/freesound_JingleWinSynth02.wav');
 }
 
 let ball, player, computer;
 
+let gameStarted = false;
+let startButton;
+
 function setup() {
-    createCanvas(800, 400);
+    let canvas = createCanvas(800, 400);
+    canvas.style('display', 'block');
+    canvas.style('margin', 'auto');
+    canvas.style('position', 'relative');
+
     ball = new Ball();
     player = new Paddle(30, true);
     computer = new Paddle(width - 40, false);
+
+    startButton = createButton('Play Game');
+    startButton.style(`
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        position: absolute;
+        left: 50%;
+        top: 150px;
+        transform: translate(-50%, 0);
+    `);
+    startButton.mousePressed(startGame);
+}
+
+function startGame() {
+    gameStarted = true;
+    startButton.position(-100, -100); // Move the button off-screen
 }
 
 function calculateAspectRatio() {
@@ -144,5 +184,8 @@ function updateAndDrawEntities() {
 
 function draw() {
     drawBackground();
-    updateAndDrawEntities();
+
+    if (gameStarted) {
+        updateAndDrawEntities();
+    }
 }
