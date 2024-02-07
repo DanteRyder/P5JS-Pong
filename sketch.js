@@ -43,9 +43,13 @@ class Ball {
     reset() {
         this.x = width / 2;
         this.y = height / 2;
-        let maxSpeed = 5;
-        this.speedX = Math.random() * maxSpeed * 2 - maxSpeed;
-        this.speedY = Math.random() * maxSpeed * 2 - maxSpeed;
+        let maxSpeed = 7;
+        let speedsX = [-maxSpeed, -maxSpeed / 2, maxSpeed / 2, maxSpeed];
+        let speedsY = [-maxSpeed, -maxSpeed / 2, maxSpeed / 2, maxSpeed];
+        let randomIndexX = Math.floor(Math.random() * speedsX.length);
+        let randomIndexY = Math.floor(Math.random() * speedsY.length);
+        this.speedX = speedsX[randomIndexX];
+        this.speedY = speedsY[randomIndexY];
     }
 
     update() {
@@ -56,9 +60,16 @@ class Ball {
         this.angle += speedMagnitude / 50;
 
         if (this.x < this.radius || this.x > width - this.radius) {
+            if (this.x < this.radius) {
+                computerPoints++;
+            } else {
+                playerPoints++;
+            }
             golSound.play();
+            speakPoints();
             this.reset();
         }
+
         if (this.y < this.radius || this.y > height - this.radius) {
             this.speedY *= -1;
         }
@@ -82,7 +93,7 @@ class Ball {
         push();
         translate(this.x, this.y);
         rotate(this.angle);
-        image(ballImage, -this.radius, -this.radius, this.radius * 2, this.radius * 2); // Draw ball
+        image(ballImage, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
         pop();
     }
 }
@@ -124,6 +135,19 @@ function preload() {
     golSound = loadSound('sounds/freesound_JingleWinSynth02.wav');
 }
 
+let playerPoints = 0;
+let computerPoints = 0;
+
+function speakPoints() {
+    if ('speechSynthesis' in window) {
+        const pontuacao = `Pontuação é ${playerPoints} a ${computerPoints}`;
+        const msg = new SpeechSynthesisUtterance(pontuacao);
+        msg.lang = 'pt-BR';
+        msg.rate = 0.8;
+        window.speechSynthesis.speak(msg);
+    }
+}
+
 let ball, player, computer;
 
 let gameStarted = false;
@@ -157,7 +181,7 @@ function setup() {
 
 function startGame() {
     gameStarted = true;
-    startButton.position(-100, -100); // Move the button off-screen
+    startButton.position(-100, -100);
 }
 
 function calculateAspectRatio() {
